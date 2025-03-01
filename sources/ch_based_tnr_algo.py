@@ -88,8 +88,8 @@ def get_ordering_shortcut(ref_graph_original, heuristic):
                 # If the node exist in the shortest path, then
                 # I need to add a shortcut
                 if node in path:
-                    ref_graph.add_edge(neighbor1, neighbor2, weight=path_length)
-                    shortcuts.add_edge(neighbor1, neighbor2, weight=path_length)
+                    ref_graph.add_edge(neighbor1, neighbor2, length=path_length)
+                    shortcuts.add_edge(neighbor1, neighbor2, length=path_length)
 
         # Remove this node and all its associated edges
         ref_graph.remove_node(node)
