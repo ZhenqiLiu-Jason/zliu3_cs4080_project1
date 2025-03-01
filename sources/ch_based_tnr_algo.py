@@ -99,3 +99,41 @@ def get_ordering_shortcut(ref_graph_original, heuristic):
             ordering[neighbor] = heuristic(ref_graph, neighbor)
 
     return node_ordering, shortcuts
+
+
+def get_transit_nodes(node_ordering, k):
+    """
+    Get the top k transit nodes based on the node ordering.
+    Returns a list of transit nodes.
+    """
+
+    # Sort nodes by importance (highest to lowest) and get the top k
+    transit_nodes = sorted(node_ordering, key=node_ordering.get, reverse=True)[:k]
+
+    return transit_nodes
+
+
+def get_transit_nodes_distance(ref_graph, transit_nodes):
+    """
+    Computes the distance table for all the transit nodes.
+
+    Returns a dictionary structured like this:
+
+    Key: (transit_node1, transit_node2)
+    Value: the length between these transit nodes
+    """
+
+    distance_table = {}
+
+    # Compute shortest path lengths between all transit node pairs
+    for node1 in transit_nodes:
+
+        # Get shortest paths from node1 to all other nodes using 'length' as weight
+        lengths, _ = nx.single_source_dijkstra(ref_graph, node1, weight='length')
+
+        # Store distances in the table for all pairs
+        for node2 in transit_nodes:
+            if node1 != node2 and node2 in lengths:
+                distance_table[(node1, node2)] = lengths[node2]
+
+    return distance_table

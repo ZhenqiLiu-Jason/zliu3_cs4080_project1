@@ -11,14 +11,17 @@ ordering, shortcuts = get_ordering_shortcut(G, get_edge_diff)
 
 
 
-
-
-fig, ax = ox.plot_graph(G, save=True, filepath='ch_non_overlap.png', dpi=300)
+#fig, ax = ox.plot_graph(G, save=True, filepath='ch_non_overlap.png', dpi=300)
 G = nx.compose(G, shortcuts)
 
 
-for u, v, d in G.edges(data=True):
-    print(d["length"])
-
 # Save the graph
-fig, ax = ox.plot_graph(G, save=True, filepath='ch_overlap.png', dpi=300)
+#fig, ax = ox.plot_graph(G, save=True, filepath='ch_overlap.png', dpi=300)
+
+
+# get transit nodes
+transit_nodes = get_transit_nodes(ordering, 10)
+distance_table = get_transit_nodes_distance(G, transit_nodes)
+
+for key, value in distance_table.items():
+    print(f"Pair: {key} -- {value}")
