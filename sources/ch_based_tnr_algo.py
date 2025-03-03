@@ -162,7 +162,6 @@ def get_access_nodes(ref_graph, node_ordering, transit_nodes, distance_table):
             # Run forward CH query
             current_access_nodes = []
             current_search_space = set()
-            current_distance = {}
 
             searched = []
 
@@ -179,8 +178,7 @@ def get_access_nodes(ref_graph, node_ordering, transit_nodes, distance_table):
                 # Prune the further search if this node is a transit node
                 # And add this candidate transit node
                 if u in transit_nodes:
-                    current_access_nodes.append(u)
-                    current_distance[u] = du
+                    current_access_nodes.append((u, du))
                     continue
                 else:
                     # Add this node to the search space
@@ -206,10 +204,10 @@ def get_access_nodes(ref_graph, node_ordering, transit_nodes, distance_table):
                 for j in range(len(current_access_nodes) - 1, i, -1):
 
                     # Get a pair of candidates transit nodes
-                    t1 = current_access_nodes[i]
-                    t2 = current_access_nodes[j]
+                    t1, t1_distance = current_access_nodes[i]
+                    t2, t2_distance = current_access_nodes[j]
 
-                    if current_distance[t1] + distance_table[frozenset([t1, t2])] <= current_distance[t2]:
+                    if t1_distance + distance_table[frozenset([t1, t2])] <= t2_distance:
                         # Use pop() with index to avoid skipping
                         current_access_nodes.pop(j)
 
@@ -218,3 +216,9 @@ def get_access_nodes(ref_graph, node_ordering, transit_nodes, distance_table):
             search_space[node] = current_search_space
 
     return access_nodes, search_space
+
+
+def ch_based_tnr_query(distance_table):
+    """
+    Returns the shortest distance from a source node to a target node.
+    """
