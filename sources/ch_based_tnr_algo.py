@@ -218,7 +218,25 @@ def get_access_nodes(ref_graph, node_ordering, transit_nodes, distance_table):
     return access_nodes, search_space
 
 
-def ch_based_tnr_query(distance_table):
+def ch_based_tnr_query(source, target, ref_graph, distance_table, access_nodes, search_space):
     """
-    Returns the shortest distance from a source node to a target node.
+    Returns the shortest path distance from a source node to a target node.
     """
+
+    # Determine the locality of the query
+    if search_space[source].isdisjoint(search_space[target]):
+
+        # (Global) Look up the tables and find the shortest distance
+        path_length = float('inf')
+
+        # Iterate through all the combinations of access nodes
+        # to find the minimum value combination
+        for s_an in access_nodes[source]:
+            for t_an in access_nodes[target]:
+                if s_an[1] + t_an[1] + distance_table[frozenset([s_an[0], t_an[0]])] < path_length:
+                    path_length = s_an[1] + t_an[1] + distance_table[frozenset([s_an[0], t_an[0]])]
+    else:
+        # (Local) Use regular bidirecitonal Dijkstra to find the distance
+        path_length, path = nx.bidirectional_dijkstra(ref_graph, source, target, weight="length")
+
+    return path_length
