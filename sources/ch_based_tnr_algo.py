@@ -218,16 +218,36 @@ def get_access_nodes(ref_graph, node_ordering, transit_nodes, distance_table):
     return access_nodes, search_space
 
 
-def ch_based_tnr_query(source, target, ref_graph, distance_table, access_nodes, search_space):
+def ch_based_tnr_query(source, target, ref_graph, distance_table, access_nodes, search_space, transit_nodes):
     """
     Returns the shortest path distance from a source node to a target node.
     """
 
-    # Determine the locality of the query
-    if search_space[source].isdisjoint(search_space[target]):
+    path_length = float('inf')
 
+    if source == target:
+        # If source and target is the same
+        path_length = 0
+
+    elif source in transit_nodes and target in transit_nodes:
+        # If both nodes are transit nodes, then just return table entry
+        path_length = distance_table[frozenset([source, target])]
+
+    elif source in transit_nodes:
+        # If only source is a transit node, only to loop up one table
+        for t_an in access_nodes[target]:
+            if t_an[1] + distance_table[frozenset([source, t_an[0]])] < path_length:
+                path_length = t_an[1] + distance_table[frozenset([source, t_an[0]])]
+
+    elif target in transit_nodes:
+        # If only target is a transit node
+        for s_an in access_nodes[source]:
+            if s_an[1] + distance_table[frozenset([s_an[0], target])] < path_length:
+                path_length = s_an[1] + distance_table[frozenset([s_an[0], target])]
+
+    elif search_space[source].isdisjoint(search_space[target]):
+        # If none of the nodes are transit node, then use TNR
         # (Global) Look up the tables and find the shortest distance
-        path_length = float('inf')
 
         # Iterate through all the combinations of access nodes
         # to find the minimum value combination
