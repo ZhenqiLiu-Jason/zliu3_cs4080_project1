@@ -138,6 +138,10 @@ def get_transit_nodes_distance(ref_graph, transit_nodes):
             if node1 != node2 and node2 in lengths:
                 distance_table[frozenset([node1, node2])] = lengths[node2]
 
+        # Add distance to itself to avoid problems in situations
+        # Where source and target node share a transit node
+        distance_table[frozenset([node1, node1])] = 0
+
     return distance_table
 
 
