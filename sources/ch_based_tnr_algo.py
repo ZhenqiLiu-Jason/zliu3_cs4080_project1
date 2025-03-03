@@ -137,3 +137,50 @@ def get_transit_nodes_distance(ref_graph, transit_nodes):
                 distance_table[(node1, node2)] = lengths[node2]
 
     return distance_table
+
+
+def get_access_nodes(ref_graph, node_ordering, transit_nodes):
+    """
+    This function gets all the access nodes for all non-transit nodes.
+
+    Runs forward CH query to find all the candidate access nodes.
+    Then prune any bogus transit nodes.
+
+    Each non-transit node's search space will also be saved.
+    """
+
+    # Dictionary to store access nodes and search space for all non-trnasit nodes
+    access_nodes = {}
+    search_space = {}
+
+    # Find the access nodes for each non-transit nodes
+    for node in ref_graph.nodes:
+        if node not in transit_ndoes:
+
+            # Run forward CH query
+            current_access_nodes = set()
+            current_search_space = set()
+
+            # Modified CH algorithm
+            distance_queue = heapdict()
+            distance_queue[node] = 0
+
+            while distance_queue:
+                u = distance_queue.popitem()
+
+                # Prune the further search if this node is a transit node
+                # And add this candidate transit node
+                if u in transit_nodes:
+                    current_access_nodes.add(u)
+                    continue
+                else:
+                    # Add this node to the search space
+                    current_search_space.add(u)
+
+                # Update distances to the neighbors
+                # Excluding those that are already in the search space
+                for neighbor in [n for n in ref_graph.neighbors(u) if n not in current_search_space]:
+                    if (distance_queue[u] + ref_graph.get_edge_data(u, neighbor)['length'] 
+                    < distance_queue.get(neighbor , float('inf'))):
+                        distance_queue[neighbor] = distance_queue[u] + ref_graph.get_edge_data(u, neighbor)['length']
+
