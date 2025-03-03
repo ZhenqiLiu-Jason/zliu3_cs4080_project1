@@ -1,4 +1,5 @@
 import time
+import math
 import statistics
 import os
 import numpy as np
@@ -47,6 +48,7 @@ def run_experiments(ref_graph, percent_transit_nodes, heuristic, online=True, nu
 
     average_query_times_result = {}
     average_query_times = []
+    average_bidi_query_times = []
 
     # Run preprocessing for each number of transit nodes
     for k_percent in percent_transit_nodes:
@@ -66,26 +68,69 @@ def run_experiments(ref_graph, percent_transit_nodes, heuristic, online=True, nu
         access_nodes = preprocess_result[5]
         search_space = preprocess_result[6]
 
-        # Run some query and compute the average time
+        # Generate a plot containing the transit nodes
+        # and the search space for a randomly selected node
         all_nodes = list(G.nodes)
+        non_transit_nodes = [node for node in all_nodes if node not in transit_nodes]
+        select_search_space = search_space[random.choice(non_transit_nodes)]
+
+        # Assign colors based on the type of node
+        node_colors = ['red' if node in transit_nodes else 'green' if 
+                node in select_search_space else 'blue' for node in all_nodes]
+
+        file_name = f'../images/deliverable2_search_space{k_percent}.png'
+
+        # Plot graph with custom node colors and save to file
+        fig, ax = ox.plot_graph(
+            ref_graph,
+            node_color=node_colors,
+            node_size=10,
+            edge_linewidth=0.5,
+            bgcolor='white',
+            save=True,
+            filepath=file_name,
+            dpi=600
+        )
+
+        plt.clf()
+        plt.close()
+
+        # Run some query and compute the average time
         trial_runs = []
+        trial_runs_bidi = []
         for _ in range(num_query_trials):
             source = random.choice(all_nodes)
             target = random.choice(all_nodes)
 
             # Calculate the time used for TNR qeury
             start_time = time.perf_counter()
-            ch_based_tnr_query(source, target, G, distance_table, 
+            path_length = ch_based_tnr_query(source, target, G, distance_table, 
                     access_nodes, search_space, transit_nodes)
             end_time = time.perf_counter()
 
             trial_runs.append(end_time - start_time)
 
+            # Calculate the time used for BiDi query
+            start_time = time.perf_counter()
+            path_length_bidi, _ = nx.bidirectional_dijkstra(G, 
+                    source, target, weight='length')
+            end_time = time.perf_counter()
+
+            trial_runs_bidi.append(end_time - start_time)
+
+            # Check the output, make sure they agree
+            if math.isclose(path_length, path_length_bidi, rel_tol=1e-9, abs_tol=0.0):
+                print(f"{source} -- {target}: Results Agree")
+            else:
+                raise ValueError(f"(TNR){path_length} != (BiDi){path_length_bidi}")
+
         # Store the average query time
         average_query_times.append(statistics.mean(trial_runs))
+        average_bidi_query_times.append(statistics.mean(trial_runs_bidi))
         
     x_axis = np.array(percent_transit_nodes)
     average_query_times_result["TNR Query Time"] = (x_axis, np.array(average_query_times), '-')
+    average_query_times_result["BiDi Query Time"] = (x_axis, np.array(average_bidi_query_times), '-')
     preprocessing_times_result["Preproccesing Time"] = (x_axis, np.array(preprocessing_times), '-')
 
     # Plot the result and save
@@ -107,67 +152,14 @@ def run_experiments(ref_graph, percent_transit_nodes, heuristic, online=True, nu
             annotation=False)
 
 
-def get_transit_node_search_space_plot():
 
-
-
-    place_name = "Boulder, Colorado, USA"
-    G = get_graph(place_name, undirected=True)
-
-    run_experiments(G, [5, 10, 20, 50, 80], get_edge_diff)
-
-    result = preprocess(G, 20, get_edge_diff)
-    G = result[0]
-    ordering = result[1]
-    shortcuts = result[2]
-    transit_nodes = result[3]
-    distance_table = result[4]
-    access_nodes = result[5]
-    search_space = result[6]
-
-
-    # Run some queries
-    all_nodes = list(G.nodes)
-    source = random.choice(all_nodes)
-    target = random.choice(all_nodes)
-
-    print(f"Source - {source}")
-    print(f"Target - {target}")
-
-    correct_answer, _ = nx.bidirectional_dijkstra(G, source, target, weight="length")
-    print(f"Correct Answer is: {correct_answer}")
-
-    tnr_answer = ch_based_tnr_query(source, target, G, distance_table, access_nodes, search_space, transit_nodes)
-    print(f"TNR Answer is: {tnr_answer}")
-
-    print(f"# nodes = {G.number_of_nodes()}")
-    print(f"# shortcuts = {shortcuts.number_of_edges()}")
-
-
-
-    # Create a color map: red for transit nodes, gray for others
-    node_colors = ['red' if node in transit_nodes else 'gray' for node in G.nodes]
-    # Draw the original graph with highlighted transit nodes
-    fig, ax = plt.subplots(figsize=(10, 10))
-    ox.plot_graph(G, node_color=node_colors, edge_color='lightgray', node_size=30, ax=ax)
-    # Save the plot
-    plt.savefig("highlighted_transit_nodes.png")
-    plt.clf()
-
-    non_transit_nodes = [node for node in all_nodes if node not in transit_nodes]
-    node_to_search = random.choice(non_transit_nodes)
-    node_colors = ['green' if node in search_space[node_to_search] else 'gray' for node in G.nodes]
-    fig, ax = plt.subplots(figsize=(10, 10))
-    ox.plot_graph(G, node_color=node_colors, edge_color='lightgray', node_size=30, ax=ax)
-    plt.savefig("highlighted_search_nodes.png")
-    plt.clf()
-
-
-
-
-
+# Start the main execution
+# Using undirected graphs for simplier implementation
 place_name = "Boulder, Colorado, USA"
 G = get_graph(place_name, undirected=True)
 
-run_experiments(G, [5, 10, 20, 50, 80], get_edge_diff)
+# A list of percentages for transit nodes
+percent_transit_nodes = [5, 10, 20, 50, 80]
 
+# Run experiment
+run_experiments(G, percent_transit_nodes, get_edge_diff)
