@@ -1,10 +1,10 @@
-Here is how to generate the PDF from scratch:
+Here is how to get the plots and data:
 
 Requirements:
 1. Make sure you have Python as a command.
 2. Make sure you have numpy and matplotlib Python environments.
-3. 
-4. Make sure you have LaTex tools.
+3. Make sure you have other modules installed.
+    Run the code and see what is missing.
 
 
 Steps:
@@ -12,14 +12,8 @@ Steps:
 # Go to the sources directory
 cd sources
 
-# Run the image generation program
-python 
+# Run the code by typing
+python generate_data.py
 
-# Generate PDF using LaTex
-cd ..
-pdflatex cs4080_project_1_report.tex
-pdflatex cs4080_project_1_report.tex
-
-
-Note:
+Note: The time to run the code depends largely on the size of the graph.
 
