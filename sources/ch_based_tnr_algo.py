@@ -199,15 +199,17 @@ def get_access_nodes(ref_graph, node_ordering, transit_nodes, distance_table):
                         distance_queue[neighbor] = du + neighbor_edge_length
 
             # Remove the bogus transit nodes using post-search-stalling
-            for i in range(len(current_access_nodes)):
-                for j in range(i + 1, len(current_access_nodes)):
+            # Iterate in reverse order to avoid index error
+            for i in range(len(current_access_nodes) - 1, -1, -1):
+                for j in range(len(current_access_nodes) - 1, i, -1):
 
                     # Get a pair of candidates transit nodes
                     t1 = current_access_nodes[i]
                     t2 = current_access_nodes[j]
 
                     if current_distance[t1] + distance_table[frozenset([t1, t2])] <= current_distance[t2]:
-                        current_access_nodes.remove(t2)
+                        # Use pop() with index to avoid skipping
+                        current_access_nodes.pop(j)
 
             # Store this auxiliary data associated with this non-transit node
             access_nodes[node] = current_access_nodes
