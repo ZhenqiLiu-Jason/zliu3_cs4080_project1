@@ -159,7 +159,7 @@ def get_access_nodes(ref_graph, node_ordering, transit_nodes, distance_table):
 
             # Run forward CH query
             current_access_nodes = []
-            current_search_space = []
+            current_search_space = set()
             current_distance = {}
 
             searched = []
@@ -182,7 +182,7 @@ def get_access_nodes(ref_graph, node_ordering, transit_nodes, distance_table):
                     continue
                 else:
                     # Add this node to the search space
-                    current_search_space.append(u)
+                    current_search_space.add(u)
 
 
                 # Update distances to the neighbors
