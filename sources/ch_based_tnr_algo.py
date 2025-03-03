@@ -38,7 +38,7 @@ def get_edge_diff(ref_graph, node):
     return num_shortcuts_added - num_edges_removed
 
 
-def get_ordering_shortcut(ref_graph_original, heuristic):
+def get_ordering_shortcut(ref_graph_original, heuristic, online=True):
     """
     This function computes the CH node ordering based on a heuristic
     It also returns the resulted shortcuts
@@ -95,8 +95,10 @@ def get_ordering_shortcut(ref_graph_original, heuristic):
         ref_graph.remove_node(node)
 
         # Recompute the heuristic of the neighbors
-        for neighbor in neighbors:
-            ordering[neighbor] = heuristic(ref_graph, neighbor)
+        # Only update if online
+        if online:
+            for neighbor in neighbors:
+                ordering[neighbor] = heuristic(ref_graph, neighbor)
 
     return node_ordering, shortcuts
 
