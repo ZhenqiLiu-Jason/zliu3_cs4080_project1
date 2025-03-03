@@ -23,5 +23,5 @@ G = nx.compose(G, shortcuts)
 transit_nodes = get_transit_nodes(ordering, 10)
 distance_table = get_transit_nodes_distance(G, transit_nodes)
 
-for key, value in distance_table.items():
-    print(f"Pair: {key} -- {value}")
+# Get access nodes
+access_nodes, search_space= get_access_nodes(G, ordering, transit_nodes, distance_table)
